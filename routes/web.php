@@ -18,12 +18,13 @@ Route::prefix('admin')->middleware(['role:admin'])->name('admin.')->group(functi
     Route::resource('/products', ProductController::class);
     Route::prefix('reports')->name('reports.')->group(function () {
         Route::get('/top-stock', [ReportController::class, 'topStock'])->name('top-stock');
-        Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('low-stock'); 
+        Route::get('/low-stock', [ReportController::class, 'lowStock'])->name('low-stock');
     });
 });
 
-// PETUGAS ROUTES
+// PETUGAS ROUTES (SEMUA DALAM SATU GROUP)
 Route::prefix('petugas')->middleware(['role:petugas'])->name('petugas.')->group(function () {
+    // Dashboard & Barang
     Route::get('/dashboard', [PetugasController::class, 'dashboard'])->name('dashboard');
     Route::get('/products', [PetugasController::class, 'products'])->name('products');
     Route::get('/products/create', [PetugasController::class, 'create'])->name('products.create');
@@ -31,31 +32,27 @@ Route::prefix('petugas')->middleware(['role:petugas'])->name('petugas.')->group(
     Route::post('/products/{id}/stock-in', [PetugasController::class, 'stockIn'])->name('stock.in');
     Route::post('/products/{id}/stock-out', [PetugasController::class, 'stockOut'])->name('stock.out');
     Route::get('/low-stock', [PetugasController::class, 'lowStock'])->name('low-stock');
-});
-
-Route::get('/', function () {
-    if (session()->has('user')) {
-        return redirect(session('user')['role'] == 'admin' ? '/admin/dashboard' : '/petugas/dashboard');
-    }
-    return redirect('/login');
     
-});
-// routes/web.php - TAMBAHKAN INI
-
-
-// PETUGAS ROUTES (tambahkan di dalam group petugas)
-Route::prefix('petugas')->middleware(['role:petugas'])->name('petugas.')->group(function () {
-    // ... route yang sudah ada ...
-    
-    // Report Stok  
+    // Laporan Stok
     Route::get('/reports/stock', [ReportController::class, 'stockReport'])->name('reports.stock');
     
     // Tanda Terima
-Route::get('/receipts', [ReportController::class, 'receiptIndex'])->name('receipts.index');
-Route::get('/receipts/create', [ReportController::class, 'receiptCreate'])->name('receipts.create');
-Route::post('/receipts', [ReportController::class, 'receiptStore'])->name('receipts.store');
-Route::get('/receipts/{id}', [ReportController::class, 'receiptShow'])->name('receipts.show');
-Route::get('/receipts/{id}/print', [ReportController::class, 'receiptPrint'])->name('receipts.print');
+    Route::get('/receipts', [ReportController::class, 'receiptIndex'])->name('receipts.index');
+    Route::get('/receipts/create', [ReportController::class, 'receiptCreate'])->name('receipts.create');
+    Route::post('/receipts', [ReportController::class, 'receiptStore'])->name('receipts.store');
+    Route::get('/receipts/{id}', [ReportController::class, 'receiptShow'])->name('receipts.show');
+    Route::get('/receipts/{id}/print', [ReportController::class, 'receiptPrint'])->name('receipts.print');
 });
 
-
+// HALAMAN AWAL (LANDING PAGE)
+Route::get('/', function () {
+    if (session()->has('user')) {
+        $role = session('user')['role'];
+        if ($role == 'admin') {
+            return redirect('/admin/dashboard');
+        } else {
+            return redirect('/petugas/dashboard');
+        }
+    }
+    return view('welcome');
+});
